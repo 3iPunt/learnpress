@@ -684,7 +684,7 @@ class LP_Checkout {
 
 				// Check user login and has enroll course ==> return course url
 				$user = learn_press_get_current_user();
-				if ( $user->has_enrolled_course( $course->get_id() ) ) {
+				if ( $user->has_enrolled_course( $course->get_id() ) && $course->is_free() ) {
 					$result = array(
 						'result'   => 'success',
 						'redirect' => esc_url( $user->get_current_item( $course->get_id(), true ) ),
