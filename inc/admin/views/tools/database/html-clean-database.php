@@ -10,23 +10,24 @@
  */
 
 defined( 'ABSPATH' ) or die();
+$lp_db               = LP_Database::getInstance();
 global $wpdb;
 $clean_tables = array(
 	'learnpress_sessions',
-//	'learnpress_user_items',
 )
 ?>
 
 <div class="card" id="lp-tool-clean-database">
-	<h2><?php echo sprintf( '%s', __( 'Database Cleaner', 'learnpress' ) ); ?></h2>
-	<p><?php _e( 'This is description', 'learnpress' ); ?></p>
+	<h2><?php echo sprintf( '%s', __( 'Repair Database', 'learnpress' ) ); ?></h2>
+	<p><?php _e( 'Remove unwanted data and re-calculate relationship', 'learnpress' ); ?></p>
+	<div class="tools-prepare__message"></div>
 	<div id="tools-select__id" class="tools-select__data">
 			<ul class="clean-table">
 				<?php foreach ( $clean_tables as $clean_table ) :
 					?>
-					<li style="background-color: <?php echo esc_attr( learn_press_get_color_code_status( $clean_table ) ); ?>">
+					<li style="background-color: <?php echo esc_attr( $lp_db->learn_press_get_color_code_status( $clean_table ) ); ?>">
 						<input type="checkbox" id="clean-table__<?php echo esc_attr( $clean_table ); ?>" name="clean-table__<?php echo esc_attr( $clean_table ); ?>" value="<?php echo esc_attr($clean_table); ?>" >
-						<label for="clean-table__<?php echo esc_attr( $clean_table ); ?>"><?php echo esc_html__( '' . $clean_table . ' (' . learn_press_count_row_db( $clean_table ) . ' rows)', 'learnpress' ); ?></label><br>
+						<label for="clean-table__<?php echo esc_attr( $clean_table ); ?>"><?php echo esc_html__( '' . $clean_table . ' (' . $lp_db->learn_press_count_row_db( $clean_table ) . ' rows)', 'learnpress' ); ?></label><br>
 					</li>
 				<?php endforeach; ?>
 			</ul>
@@ -36,13 +37,16 @@ $clean_tables = array(
 	</p>
 
 	<div class="wrapper-lp-loading" style="display: none">
-		<?php foreach ( $clean_tables as $clean_table ) :
-			$rows = learn_press_count_row_db($clean_table);
+		<?php
+		$i = 0;
+		foreach ( $clean_tables as $clean_table ) :
+			$i++;
+			$rows = $lp_db->learn_press_count_row_db($clean_table);
 		?>
-			<div class="progressbar__item" data-total="<?php echo esc_attr($rows); ?>">
+			<div class="progressbar__item step-<?php echo esc_attr($i); ?>" data-total="<?php echo esc_attr($rows); ?>">
 				<div class="progressbar__container">
 					<div class="progressbar__content">
-						<h4>Table name: learnpress_sessions</h4>
+						<h4><?php echo esc_html('Table name: '.$clean_table.'') ?></h4>
 						<div class="progressbar__indexs">
 								<span class="progressbar__rows">
 									<?php echo esc_html('0 / ' . $rows) ?>

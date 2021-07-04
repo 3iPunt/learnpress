@@ -152,15 +152,18 @@ class LP_REST_Admin_Tools_Controller extends LP_Abstract_REST_Controller {
 
 		$tables              = $request->get_param( 'tables' );
 		$item_before_process = $request->get_param( 'itemtotal' );
-
-		// lay tong so dong truoc khi xu ly
-
-//		$step = count( $tables );
+		if($item_before_process == 0){
+			$response->data->percent == 100;
+			$response->status = 'finished';
+			wp_send_json( $response );
+		}
 
 		try {
 			$lp_db               = LP_Database::getInstance();
 			// Delete resuilt in table select
-//			$where = 'WHERE session_expiry < now() - 130';
+			$now = current_time('timestamp');
+			$adayago = $now - (24*60*60);
+			$where = 'WHERE session_expiry < '.$adayago.'';
 			$where = '';
 			$table = $lp_db->tb_lp_sessions;
 			$limit = 100;
@@ -171,7 +174,7 @@ class LP_REST_Admin_Tools_Controller extends LP_Abstract_REST_Controller {
 			LIMIT {$limit}
 			"
 			);
-			// kiem tra so dong con lai
+			// check the number of lines remaining after each query
 			$item_after_process = $lp_db->learn_press_count_row_db( $tables,'' );
 			$response->data->processed = $item_before_process - $item_after_process;
 			$percent   = ( ($item_before_process - $item_after_process) / $item_before_process ) * 100;

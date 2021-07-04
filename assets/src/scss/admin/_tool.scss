@@ -275,8 +275,21 @@
 }
 .progressbar__item{
 	width: 500px;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid #fff;
 }
 .progressbar__indexs{
 	z-index: 9;
 }
+.lp-tool__message{
+	text-align: center;
+	color: red;
+	padding: 10px 0;
+	display: none;
+}
+.tools-prepare__message{
+	background: yellow;
+	padding: 10px 0;
+	text-align: center;
+	display: none;
+}
+
