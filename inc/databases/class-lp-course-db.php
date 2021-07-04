@@ -101,7 +101,7 @@ class LP_Course_DB extends LP_Database {
 			ON items.section_id = sections.section_id
 			AND sections.section_course_id = %d
 			",
-				$course_id,0
+				$course_id
 			);
 			$first_item_id = (int) $this->wpdb->get_var( $query );
 
@@ -144,6 +144,7 @@ class LP_Course_DB extends LP_Database {
 
 		return $this->wpdb->get_col( $query );
 	}
+
 }
 
 LP_Course_DB::getInstance();

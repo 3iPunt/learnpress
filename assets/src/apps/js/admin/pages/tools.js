@@ -1,5 +1,6 @@
 import getStepsUpgradeStatus from './tools/database/upgrade';
 import createIndexes from './tools/database/create_indexs';
+import cleanDatabases from './tools/database/clean_database';
 import reUpgradeDB from './tools/database/re-upgrade-db';
 
 import resetData from './tools/reset-data';
@@ -112,6 +113,7 @@ import resetData from './tools/reset-data';
 	$( function() {
 		getStepsUpgradeStatus();
 		createIndexes();
+		cleanDatabases();
 		reUpgradeDB();
 		resetData();
 

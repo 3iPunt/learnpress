@@ -62,7 +62,8 @@ const createIndexes = () => {
 						scrollTop: offset,
 					}, 600 );
 				};
-
+				// console.log( table );
+				console.log( tables );
 				for ( const table in tables ) {
 					const elItemStep = lpModalOverlay.elLPOverlay[ 0 ].querySelector( '.lp-item-step' ).cloneNode( true );
 					const input = elItemStep.querySelector( 'input' );

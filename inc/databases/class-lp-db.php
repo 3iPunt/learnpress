@@ -22,6 +22,7 @@ class LP_Database {
 	public $tb_lp_question_answers;
 	public $tb_lp_question_answermeta;
 	public $tb_lp_upgrade_db;
+	public $tb_lp_sessions;
 	private $collate         = '';
 	public $max_index_length = '191';
 
@@ -48,6 +49,7 @@ class LP_Database {
 		$this->tb_lp_question_answers    = $prefix . 'learnpress_question_answers';
 		$this->tb_lp_question_answermeta = $prefix . 'learnpress_question_answermeta';
 		$this->tb_lp_upgrade_db          = $prefix . 'learnpress_upgrade_db';
+		$this->tb_lp_sessions            = $prefix . 'learnpress_sessions';
 		$this->wpdb->hide_errors();
 		$this->set_collate();
 	}
@@ -68,15 +70,15 @@ class LP_Database {
 	public function set_collate() {
 		$collate = '';
 
-		if ( $this->wpdb->has_cap( 'collation' ) ) {
-			if ( ! empty( $this->wpdb->charset ) ) {
-				$collate .= 'DEFAULT CHARACTER SET ' . $this->wpdb->charset;
-			}
+			if ( $this->wpdb->has_cap( 'collation' ) ) {
+				if ( ! empty( $this->wpdb->charset ) ) {
+					$collate .= 'DEFAULT CHARACTER SET ' . $this->wpdb->charset;
+				}
 
-			if ( ! empty( $this->wpdb->collate ) ) {
-				$collate .= ' COLLATE ' . $this->wpdb->collate;
+				if ( ! empty( $this->wpdb->collate ) ) {
+					$collate .= ' COLLATE ' . $this->wpdb->collate;
+				}
 			}
-		}
 
 		$this->collate = $collate;
 	}
@@ -515,6 +517,21 @@ class LP_Database {
 		);
 		$this->check_execute_has_error();
 
+		return $result;
+	}
+
+	public function learn_press_count_row_db( $table_name,$condition = '' ) {
+		global $wpdb;
+		$query  = $wpdb->prepare(
+			"
+			SELECT count(*)
+			FROM {$wpdb->prefix}$table_name
+			WHERE 0=%d
+			{$condition}
+			",
+			0
+		);
+		$result = $wpdb->get_var( $query );
 		return $result;
 	}
 }
