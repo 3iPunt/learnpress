@@ -188,6 +188,11 @@ class LP_Template_Course extends LP_Abstract_Template {
 			return;
 		}
 
+		//Course has no items
+		if ( empty( $course->get_item_ids() )) {
+			return;
+		}
+
 		// Course is not require enrolling.
 		if ( $course->is_no_required_enroll() ) {
 			return;
@@ -247,6 +252,11 @@ class LP_Template_Course extends LP_Abstract_Template {
 
 		// User can not enroll course.
 		if ( ! $user->can_enroll_course( $course->get_id() ) ) {
+			return;
+		}
+
+		//Course has no items
+		if ( empty( $course->get_item_ids() ) ) {
 			return;
 		}
 
@@ -432,6 +442,11 @@ class LP_Template_Course extends LP_Abstract_Template {
 		$course = LP_Global::course();
 
 		$check = $this->can_show_finish_course_btn( $course, $user );
+
+		//Course has no items
+		if ( empty( $course->get_item_ids() )) {
+			return;
+		}
 
 		if ( $check['status'] === 'success' ) {
 			learn_press_get_template(
