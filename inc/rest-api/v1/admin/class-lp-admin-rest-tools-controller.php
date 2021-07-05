@@ -164,7 +164,6 @@ class LP_REST_Admin_Tools_Controller extends LP_Abstract_REST_Controller {
 			$now = current_time('timestamp');
 			$adayago = $now - (24*60*60);
 			$where = 'WHERE session_expiry < '.$adayago.'';
-			$where = '';
 			$table = $lp_db->tb_lp_sessions;
 			$limit = 100;
 			$query = $lp_db->wpdb->query(
