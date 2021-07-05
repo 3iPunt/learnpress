@@ -65,6 +65,11 @@ class LP_Template_Course extends LP_Abstract_Template {
 			return;
 		}
 
+		//Course has no items
+		if ( empty( $course->get_item_ids() ) ) {
+			return;
+		}
+
 		$can_retake_times = $user->can_retry_course( $course->get_id() );
 
 		if ( $can_retake_times ) {
@@ -188,11 +193,6 @@ class LP_Template_Course extends LP_Abstract_Template {
 			return;
 		}
 
-		//Course has no items
-		if ( empty( $course->get_item_ids() )) {
-			return;
-		}
-
 		// Course is not require enrolling.
 		if ( $course->is_no_required_enroll() ) {
 			return;
@@ -252,11 +252,6 @@ class LP_Template_Course extends LP_Abstract_Template {
 
 		// User can not enroll course.
 		if ( ! $user->can_enroll_course( $course->get_id() ) ) {
-			return;
-		}
-
-		//Course has no items
-		if ( empty( $course->get_item_ids() ) ) {
 			return;
 		}
 
@@ -389,6 +384,15 @@ class LP_Template_Course extends LP_Abstract_Template {
 			return;
 		}
 
+		//Course has no items
+		if ( empty( $course->get_item_ids() ) ) {
+			return;
+		}
+
+		if ( $user->can_view_content_course( $course->get_id() )->key === LP_BLOCK_COURSE_DURATION_EXPIRE ) {
+			return;
+		}
+
 		learn_press_get_template( 'single-course/buttons/continue.php' );
 	}
 
@@ -444,7 +448,7 @@ class LP_Template_Course extends LP_Abstract_Template {
 		$check = $this->can_show_finish_course_btn( $course, $user );
 
 		//Course has no items
-		if ( empty( $course->get_item_ids() )) {
+		if ( empty( $course->get_item_ids() ) ) {
 			return;
 		}
 
