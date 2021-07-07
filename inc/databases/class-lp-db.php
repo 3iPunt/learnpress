@@ -539,7 +539,7 @@ class LP_Database {
 		return $result;
 	}
 	public function learn_press_get_color_code_status( $table_name ) {
-		$color_code = '#00FF00';
+		$color_code = '#ffffff';
 		$rows       = $this->learn_press_count_row_db( $table_name );
 		if ( $rows > 500 ) {
 			$color_code = '#ff0000';

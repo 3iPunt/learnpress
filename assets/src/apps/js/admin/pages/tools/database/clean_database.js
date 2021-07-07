@@ -39,10 +39,17 @@ const cleanDatabases = () => {
 			listTables.push( e.value );
 		} );
 		const tables = listTables[ 0 ];
-		console.log( tables );
 		const item = elLoading.querySelector( '.progressbar__item' );
 
 		const itemtotal = item.getAttribute( 'data-total' );
+		const modal = document.querySelector( '.lp-modal-body .main-content' );
+		const notice = modal.querySelector( '.lp-tool__message' );
+		if ( itemtotal <= 0 ) {
+			lpModalOverlay.elBtnYes[ 0 ].style.display = 'none';
+			notice.textContent = ( 'There is no data that need to be repaired in the chosen tables' );
+			notice.style.display = 'block';
+			return;
+		}
 		lpModalOverlay.callBackYes = () => {
 			// warn user before doing
 			const r = confirm( 'The modified data is impossible to be restored. Please backup your website before doing this.' );
@@ -66,6 +73,8 @@ const cleanDatabases = () => {
 					const progressBarRows = modalItem.querySelector( '.progressbar__rows' );
 					const progressPercent = modalItem.querySelector( '.progressbar__percent' );
 					const progressValue = modalItem.querySelector( '.progressbar__value' );
+
+					console.log( status );
 					if ( 'success' === status ) {
 						setTimeout( () => {
 							handleAjax( url, params, functions );
@@ -81,12 +90,18 @@ const cleanDatabases = () => {
 						progressBarRows.textContent = itemtotal + ' / ' + itemtotal;
 						progressPercent.textContent = '( 100% )';
 						// Update complete nofication
-						notice.textContent = 'Process has been completed. Press finish button to close the window';
-						notice.style.color = '#ffffff';
-						notice.background.color = '#00FF00';
+						const modal = document.querySelector( '.lp-modal-body .main-content' );
+						const notice = modal.querySelector( '.lp-tool__message' );
+						notice.textContent = 'Process has been completed. Press click the finish button to close this popup';
+						notice.style.color = 'white';
+						notice.style.background = 'green';
+						progressValue.style.width = '100%';
 						// Show finish button
 						lpModalOverlay.elBtnNo[ 0 ].style.display = 'inline-block';
 						lpModalOverlay.elBtnNo[ 0 ].textContent = 'Finish';
+						lpModalOverlay.elBtnNo[ 0 ].addEventListener( 'click', function() {
+							location.reload();
+						} );
 					} else {
 						console.log( message );
 					}
