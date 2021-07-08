@@ -14,7 +14,8 @@ $lp_db_sessions      = LP_Sessions_DB::getInstance();
 global $wpdb;
 $clean_tables = array(
 	'learnpress_sessions',
-)
+);
+$rows       = $lp_db_sessions->count_row_db_sessions();
 ?>
 
 <div class="card" id="lp-tool-clean-database">
@@ -25,7 +26,7 @@ $clean_tables = array(
 			<ul class="clean-table">
 				<?php foreach ( $clean_tables as $clean_table ) :
 					$color_code = '#ffffff';
-					$rows       = $lp_db_sessions->count_row_db_sessions();
+
 					if ( $rows > 500 ) {
 						$color_code = '#ff0000';
 					}
@@ -46,7 +47,6 @@ $clean_tables = array(
 		$i = 0;
 		foreach ( $clean_tables as $clean_table ) :
 			$i++;
-			$rows = $lp_db_sessions->count_row_db_sessions();
 		?>
 			<div class="progressbar__item step-<?php echo esc_attr($i); ?>" data-total="<?php echo esc_attr($rows); ?>">
 				<div class="progressbar__container">
