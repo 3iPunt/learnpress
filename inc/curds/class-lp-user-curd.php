@@ -1462,14 +1462,89 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 				}
 
 				$where = $where . $wpdb->prepare( ' AND post_type = %s AND post_author = %d', LP_COURSE_CPT, $user_id );
+
+				// Check if wpml active & install
+				$join = '';
+				if ( function_exists('icl_object_id') ) {
+					$ilc = '';
+					if ( defined( 'ICL_LANGUAGE_CODE' ) ) {
+						if ( isset( $_COOKIE['wp-wpml_current_language'] ) ) {
+							$ilc = $_COOKIE['wp-wpml_current_language'];
+						} else {
+							$ilc = ICL_LANGUAGE_CODE;
+						}
+					}
+					// Get option taxonomies_unlocked_option
+					$t_option = get_option('icl_sitepress_settings');
+					$lpcourse_tu_option = $t_option['custom_posts_sync_option']['lp_course'];
+					if ( $lpcourse_tu_option == 1 ) {
+						// Select list course is translated with language default
+						$my_default_lang = apply_filters('wpml_default_language', NULL );
+						if ( isset( $my_default_lang ) && $ilc == $my_default_lang ) {
+							$query      = $wpdb->prepare( '
+						SELECT trid
+						FROM ' . $wpdb->prefix . 'icl_translations
+						WHERE source_language_code = %s AND element_type = %s
+						GROUP BY trid
+						', $ilc, 'post_lp_course' );
+							$trid_array = $wpdb->get_col( $query );
+							//select all course id base translate id
+							$tri_ids = implode( ',', $trid_array );
+							$where   = $where . $wpdb->prepare( ' AND trid IN ( ' . $tri_ids . ' )', 0 );
+						}
+						$join = $wpdb->prepare( ' INNER JOIN '.$wpdb->prefix.'icl_translations icl ON c.ID = icl.element_id', 0 );
+						$where = $where . $wpdb->prepare( ' AND icl.language_code = %s ', $ilc );
+					} elseif ( $lpcourse_tu_option == 2 ) {
+						$my_default_lang = apply_filters('wpml_default_language', NULL );
+						if ( isset( $my_default_lang ) && $ilc == $my_default_lang ) {
+							$join  = $wpdb->prepare( ' INNER JOIN ' . $wpdb->prefix . 'icl_translations icl ON c.ID = icl.element_id', 0 );
+							$where = $where . $wpdb->prepare( ' AND icl.language_code = %s ', $ilc );
+						} else {
+							// select trid list courses translated
+							$query      = $wpdb->prepare( '
+							SELECT  trid
+							FROM ' . $wpdb->prefix . 'icl_translations
+							WHERE language_code = %s AND element_type = %s
+							',$ilc,'post_lp_course');
+							$trid_array = $wpdb->get_col( $query );
+							$tri_ids = implode( ',', $trid_array );
+
+							// List element ids original language course
+							$query      = $wpdb->prepare( '
+							SELECT  element_id
+							FROM ' . $wpdb->prefix . 'icl_translations
+							WHERE language_code = %s AND element_type = %s AND trid NOT IN ( ' . $tri_ids . ' )
+							',$my_default_lang,'post_lp_course');
+							$original_elid_array = $wpdb->get_col( $query );
+
+
+							// List element ids by current language course
+							$query      = $wpdb->prepare( '
+							SELECT  element_id
+							FROM ' . $wpdb->prefix . 'icl_translations
+							WHERE language_code = %s AND element_type = %s
+							',$ilc,'post_lp_course');
+							$current_elid_array = $wpdb->get_col( $query );
+
+							$merge_ids = array_merge($original_elid_array,$current_elid_array);
+							$total_lang_ids = implode( ',', $merge_ids );
+
+							// Set query
+							$join  = $wpdb->prepare( ' INNER JOIN ' . $wpdb->prefix . 'icl_translations icl ON c.ID = icl.element_id', 0 );
+							$where   = $where . $wpdb->prepare( ' AND element_id IN ( ' . $total_lang_ids . ' )', $ilc );
+						}
+					}
+
+				}
+
 				$sql   = "
 					SELECT SQL_CALC_FOUND_ROWS ID
 					FROM {$wpdb->posts} c
+					{$join}
 					{$where}
 					ORDER BY ID DESC
 					LIMIT {$offset}, {$limit}
 				";
-
 				$items       = $wpdb->get_results( $sql );
 				$count       = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 				$all_courses = learnpress_get_count_by_user( $user_id, 'lp_course' );
@@ -1541,7 +1616,7 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 		}
 
 		$cache_key = sprintf( 'purchased-courses-%d-%s', $user_id, md5( build_query( $args ) ) );
-		$courses   = LP_Object_Cache::get( $cache_key, 'learn-press/user-courses' );
+		$courses   = false;
 
 		if ( false === $courses ) {
 			$courses = array(
@@ -1710,6 +1785,80 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 					$limit = '';
 				}
 
+
+				// Check if wpml active & install
+				if ( function_exists('icl_object_id') ) {
+					$ilc = '';
+					if ( defined( 'ICL_LANGUAGE_CODE' ) ) {
+						if ( isset( $_COOKIE['wp-wpml_current_language'] ) ) {
+							$ilc = $_COOKIE['wp-wpml_current_language'];
+						} else {
+							$ilc = ICL_LANGUAGE_CODE;
+						}
+					}
+					// Get option taxonomies_unlocked_option
+					$t_option = get_option('icl_sitepress_settings');
+					$lpcourse_tu_option = $t_option['custom_posts_sync_option']['lp_course'];
+					if ( $lpcourse_tu_option == 1 ) {
+						// Select list course is translated with language default
+						$my_default_lang = apply_filters('wpml_default_language', NULL );
+						if ( isset( $my_default_lang ) && $ilc == $my_default_lang ) {
+							$query      = $wpdb->prepare( '
+						SELECT trid
+						FROM ' . $wpdb->prefix . 'icl_translations
+						WHERE source_language_code = %s AND element_type = %s
+						GROUP BY trid
+						', $ilc, 'post_lp_course' );
+							$trid_array = $wpdb->get_col( $query );
+							//select all course id base translate id
+							$tri_ids = implode( ',', $trid_array );
+							$where   = $where . $wpdb->prepare( ' AND trid IN ( ' . $tri_ids . ' )', 0 );
+						}
+						$join = $wpdb->prepare( ' INNER JOIN '.$wpdb->prefix.'icl_translations icl ON c.ID = icl.element_id', 0 );
+						$where = $where . $wpdb->prepare( ' AND icl.language_code = %s ', $ilc );
+					} elseif ( $lpcourse_tu_option == 2 ) {
+//						$my_default_lang = apply_filters('wpml_default_language', NULL );
+//						if ( isset( $my_default_lang ) && $ilc == $my_default_lang ) {
+//							$join  = $wpdb->prepare( ' INNER JOIN ' . $wpdb->prefix . 'icl_translations icl ON c.ID = icl.element_id', 0 );
+//							$where = $where . $wpdb->prepare( ' AND icl.language_code = %s ', $ilc );
+//						} else {
+//							// select trid list courses translated
+//							$query      = $wpdb->prepare( '
+//							SELECT  trid
+//							FROM ' . $wpdb->prefix . 'icl_translations
+//							WHERE language_code = %s AND element_type = %s
+//							',$ilc,'post_lp_course');
+//							$trid_array = $wpdb->get_col( $query );
+//							$tri_ids = implode( ',', $trid_array );
+//
+//							// List element ids original language course
+//							$query      = $wpdb->prepare( '
+//							SELECT  element_id
+//							FROM ' . $wpdb->prefix . 'icl_translations
+//							WHERE language_code = %s AND element_type = %s AND trid NOT IN ( ' . $tri_ids . ' )
+//							',$my_default_lang,'post_lp_course');
+//							$original_elid_array = $wpdb->get_col( $query );
+//
+//
+//							// List element ids by current language course
+//							$query      = $wpdb->prepare( '
+//							SELECT  element_id
+//							FROM ' . $wpdb->prefix . 'icl_translations
+//							WHERE language_code = %s AND element_type = %s
+//							',$ilc,'post_lp_course');
+//							$current_elid_array = $wpdb->get_col( $query );
+//
+//							$merge_ids = array_merge($original_elid_array,$current_elid_array);
+//							$total_lang_ids = implode( ',', $merge_ids );
+//
+//							// Set query
+//							$join  = $wpdb->prepare( ' INNER JOIN ' . $wpdb->prefix . 'icl_translations icl ON c.ID = icl.element_id', 0 );
+//							$where   = $where . $wpdb->prepare( ' AND element_id IN ( ' . $total_lang_ids . ' )', $ilc );
+//						}
+					}
+
+				}
+
 				$sql = "
 					SELECT SQL_CALC_FOUND_ROWS *
 					FROM
@@ -1725,7 +1874,7 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 					{$orderby}
 					$limit
 				";
-
+//				var_dump($sql);die('222222222222');
 				$items = $wpdb->get_results( $sql );
 
 				if ( $unenrolled_course_ids ) {
@@ -2108,6 +2257,7 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 	}
 
 	public static function create_user( $email, $username, $password ) {
+
 		if ( empty( $email ) || ! is_email( $email ) ) {
 			return new WP_Error( 'registration-error-invalid-email', __( 'Please provide a valid email address.', 'learnpress' ) );
 		}
