@@ -683,14 +683,41 @@ class LP_User_Item extends LP_Abstract_Object_Data implements ArrayAccess {
 	 * @return $this
 	 */
 	public function get_graduation() {
-		return apply_filters(
-			'learnpress/user-item/get-graduation',
-			$this->get_data( 'graduation' ),
-			$this->get_item_id(),
-			$this->get_user()
-		);
+
+		$result = $this->get_last_status_by_user_course($this->get_user_id() , $this->get_course( 'id' ));
+
+		return $result->graduation;
+		// return apply_filters(
+		// 	'learnpress/user-item/get-graduation',
+		// 	$this->get_data( 'graduation' ),
+		// 	$this->get_item_id(),
+		// 	$this->get_user()
+		// );
 	}
 
+	public function get_last_status_by_user_course( int $user_id = 0, int $course_id = 0 ) {
+		global $wpdb;
+		$lp_db = LP_Database::getInstance();
+
+		$query = $lp_db->wpdb->prepare(
+			"
+			SELECT graduation, Max(user_item_id) AS user_item_id
+			FROM $lp_db->tb_lp_user_items
+			WHERE item_type = %s
+			AND item_id = %d
+			AND user_id = %s
+			",
+			LP_COURSE_CPT,
+			$course_id,
+			$user_id
+		);
+
+		$result = $lp_db->wpdb->get_row( $query );
+
+		$lp_db->check_execute_has_error();
+
+		return $result;
+	}
 	/**
 	 * Update data from memory to database.
 	 *

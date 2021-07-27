@@ -577,9 +577,9 @@ class LP_User_Item_Course extends LP_User_Item implements ArrayAccess {
 	 * @return string
 	 */
 	public function get_grade( $context = '' ) {
-		$grade = $this->get_status();
+		$grade = $this->get_graduation();
 
-		return $context == 'display' ? learn_press_course_grade_html( $grade, false ) : $grade;
+		return $context == 'display' ? learn_press_get_graduation_text( $grade ) : $grade;
 	}
 
 	/**
