@@ -1466,6 +1466,7 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 				// Check if wpml active & install
 				$join = '';
 				if ( function_exists('icl_object_id') ) {
+					$lp_db           = LP_Database::getInstance();
 					$ilc = '';
 					if ( defined( 'ICL_LANGUAGE_CODE' ) ) {
 						if ( isset( $_COOKIE['wp-wpml_current_language'] ) ) {
@@ -1481,15 +1482,8 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 						// Select list course is translated with language default
 						$my_default_lang = apply_filters('wpml_default_language', NULL );
 						if ( isset( $my_default_lang ) && $ilc == $my_default_lang ) {
-							$query      = $wpdb->prepare( '
-						SELECT trid
-						FROM ' . $wpdb->prefix . 'icl_translations
-						WHERE source_language_code = %s AND element_type = %s
-						GROUP BY trid
-						', $ilc, 'post_lp_course' );
-							$trid_array = $wpdb->get_col( $query );
 							//select all course id base translate id
-							$tri_ids = implode( ',', $trid_array );
+							$tri_ids = $lp_db->query_support_wpml_profile('translated_by_default_lang','','ids');
 							$where   = $where . $wpdb->prepare( ' AND trid IN ( ' . $tri_ids . ' )', 0 );
 						}
 						$join = $wpdb->prepare( ' INNER JOIN '.$wpdb->prefix.'icl_translations icl ON c.ID = icl.element_id', 0 );
@@ -1501,29 +1495,14 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 							$where = $where . $wpdb->prepare( ' AND icl.language_code = %s ', $ilc );
 						} else {
 							// select trid list courses translated
-							$query      = $wpdb->prepare( '
-							SELECT  trid
-							FROM ' . $wpdb->prefix . 'icl_translations
-							WHERE language_code = %s AND element_type = %s
-							',$ilc,'post_lp_course');
-							$trid_array = $wpdb->get_col( $query );
-							$tri_ids = implode( ',', $trid_array );
+							$tri_ids = $lp_db->query_support_wpml_profile('list_course_translated','','ids');
 
 							// List element ids original language course
-							$query      = $wpdb->prepare( '
-							SELECT  element_id
-							FROM ' . $wpdb->prefix . 'icl_translations
-							WHERE language_code = %s AND element_type = %s AND trid NOT IN ( ' . $tri_ids . ' )
-							',$my_default_lang,'post_lp_course');
+							$query =  $lp_db->query_support_wpml_profile('not_ids_original_language', $tri_ids,'query');
 							$original_elid_array = $wpdb->get_col( $query );
 
-
 							// List element ids by current language course
-							$query      = $wpdb->prepare( '
-							SELECT  element_id
-							FROM ' . $wpdb->prefix . 'icl_translations
-							WHERE language_code = %s AND element_type = %s
-							',$ilc,'post_lp_course');
+							$query = $lp_db->query_support_wpml_profile('list_element_id_course_translated','','query');
 							$current_elid_array = $wpdb->get_col( $query );
 
 							$merge_ids = array_merge($original_elid_array,$current_elid_array);
@@ -1534,7 +1513,6 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 							$where   = $where . $wpdb->prepare( ' AND element_id IN ( ' . $total_lang_ids . ' )', $ilc );
 						}
 					}
-
 				}
 
 				$sql   = "
@@ -1785,9 +1763,9 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 					$limit = '';
 				}
 
-
 				// Check if wpml active & install
 				if ( function_exists('icl_object_id') ) {
+					$lp_db           = LP_Database::getInstance();
 					$ilc = '';
 					if ( defined( 'ICL_LANGUAGE_CODE' ) ) {
 						if ( isset( $_COOKIE['wp-wpml_current_language'] ) ) {
@@ -1800,61 +1778,44 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 					$t_option = get_option('icl_sitepress_settings');
 					$lpcourse_tu_option = $t_option['custom_posts_sync_option']['lp_course'];
 					if ( $lpcourse_tu_option == 1 ) {
-						// Select list course is translated with language default
+						// Select all course by other lang (current)
+						$query      = $wpdb->prepare( '
+							SELECT  element_id
+							FROM ' . $wpdb->prefix . 'icl_translations
+							WHERE language_code != %s AND element_type = %s
+							',$ilc,'post_lp_course');
+						$trid_array = $lp_db->query_support_wpml_profile('list_course_not_translated','','ids');
+						$other_lang_ids = implode( ',', $trid_array );
+						$where   = $where . $wpdb->prepare( 'AND c.ID NOT IN ( ' . $other_lang_ids . ' )', 0 );
+					} elseif ( $lpcourse_tu_option == 2 ) {
 						$my_default_lang = apply_filters('wpml_default_language', NULL );
 						if ( isset( $my_default_lang ) && $ilc == $my_default_lang ) {
+							// select all other not defaut lang
+							$trid_array = $lp_db->query_support_wpml_profile('list_course_default_not_translated','','ids');
+							$not_default_ids = implode( ',', $trid_array );
+							$where   = $where . $wpdb->prepare( 'AND c.ID NOT IN ( ' . $not_default_ids . ' )', 0 );
+						} else {
+
+							// select trid list courses translated
+							$tri_ids = $lp_db->query_support_wpml_profile('list_course_translated','','ids');
+
+							// List element ids original language course
+							$query      = $lp_db->query_support_wpml_profile('ids_original_language', $tri_ids,'query');
+							$original_elid_array = $wpdb->get_col( $query );
+							$original_ids = implode( ',', $original_elid_array );
+							// Select all course by other lang (not current, not default)
 							$query      = $wpdb->prepare( '
-						SELECT trid
-						FROM ' . $wpdb->prefix . 'icl_translations
-						WHERE source_language_code = %s AND element_type = %s
-						GROUP BY trid
-						', $ilc, 'post_lp_course' );
-							$trid_array = $wpdb->get_col( $query );
-							//select all course id base translate id
-							$tri_ids = implode( ',', $trid_array );
-							$where   = $where . $wpdb->prepare( ' AND trid IN ( ' . $tri_ids . ' )', 0 );
+							SELECT  element_id
+							FROM ' . $wpdb->prefix . 'icl_translations
+							WHERE language_code != %s AND language_code != %s AND element_type = %s
+							',$my_default_lang,$ilc,'post_lp_course');
+							$trid_array = $lp_db->query_support_wpml_profile('all_course_other_language','','ids');
+							$other_lang_ids = implode( ',', $trid_array );
+
+							// Set query
+							$where   = $where . $wpdb->prepare( 'AND c.ID NOT IN ( ' . $original_ids . ' )', 0 );
+							$where   = $where . $wpdb->prepare( 'AND c.ID NOT IN ( ' . $other_lang_ids . ' )', 0 );
 						}
-						$join = $wpdb->prepare( ' INNER JOIN '.$wpdb->prefix.'icl_translations icl ON c.ID = icl.element_id', 0 );
-						$where = $where . $wpdb->prepare( ' AND icl.language_code = %s ', $ilc );
-					} elseif ( $lpcourse_tu_option == 2 ) {
-//						$my_default_lang = apply_filters('wpml_default_language', NULL );
-//						if ( isset( $my_default_lang ) && $ilc == $my_default_lang ) {
-//							$join  = $wpdb->prepare( ' INNER JOIN ' . $wpdb->prefix . 'icl_translations icl ON c.ID = icl.element_id', 0 );
-//							$where = $where . $wpdb->prepare( ' AND icl.language_code = %s ', $ilc );
-//						} else {
-//							// select trid list courses translated
-//							$query      = $wpdb->prepare( '
-//							SELECT  trid
-//							FROM ' . $wpdb->prefix . 'icl_translations
-//							WHERE language_code = %s AND element_type = %s
-//							',$ilc,'post_lp_course');
-//							$trid_array = $wpdb->get_col( $query );
-//							$tri_ids = implode( ',', $trid_array );
-//
-//							// List element ids original language course
-//							$query      = $wpdb->prepare( '
-//							SELECT  element_id
-//							FROM ' . $wpdb->prefix . 'icl_translations
-//							WHERE language_code = %s AND element_type = %s AND trid NOT IN ( ' . $tri_ids . ' )
-//							',$my_default_lang,'post_lp_course');
-//							$original_elid_array = $wpdb->get_col( $query );
-//
-//
-//							// List element ids by current language course
-//							$query      = $wpdb->prepare( '
-//							SELECT  element_id
-//							FROM ' . $wpdb->prefix . 'icl_translations
-//							WHERE language_code = %s AND element_type = %s
-//							',$ilc,'post_lp_course');
-//							$current_elid_array = $wpdb->get_col( $query );
-//
-//							$merge_ids = array_merge($original_elid_array,$current_elid_array);
-//							$total_lang_ids = implode( ',', $merge_ids );
-//
-//							// Set query
-//							$join  = $wpdb->prepare( ' INNER JOIN ' . $wpdb->prefix . 'icl_translations icl ON c.ID = icl.element_id', 0 );
-//							$where   = $where . $wpdb->prepare( ' AND element_id IN ( ' . $total_lang_ids . ' )', $ilc );
-//						}
 					}
 
 				}
@@ -1874,7 +1835,6 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 					{$orderby}
 					$limit
 				";
-//				var_dump($sql);die('222222222222');
 				$items = $wpdb->get_results( $sql );
 
 				if ( $unenrolled_course_ids ) {
