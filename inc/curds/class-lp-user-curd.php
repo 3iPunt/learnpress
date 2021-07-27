@@ -1779,11 +1779,6 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 					$lpcourse_tu_option = $t_option['custom_posts_sync_option']['lp_course'];
 					if ( $lpcourse_tu_option == 1 ) {
 						// Select all course by other lang (current)
-						$query      = $wpdb->prepare( '
-							SELECT  element_id
-							FROM ' . $wpdb->prefix . 'icl_translations
-							WHERE language_code != %s AND element_type = %s
-							',$ilc,'post_lp_course');
 						$trid_array = $lp_db->query_support_wpml_profile('list_course_not_translated','','ids');
 						$other_lang_ids = implode( ',', $trid_array );
 						$where   = $where . $wpdb->prepare( 'AND c.ID NOT IN ( ' . $other_lang_ids . ' )', 0 );
@@ -1804,11 +1799,6 @@ class LP_User_CURD extends LP_Object_Data_CURD implements LP_Interface_CURD {
 							$original_elid_array = $wpdb->get_col( $query );
 							$original_ids = implode( ',', $original_elid_array );
 							// Select all course by other lang (not current, not default)
-							$query      = $wpdb->prepare( '
-							SELECT  element_id
-							FROM ' . $wpdb->prefix . 'icl_translations
-							WHERE language_code != %s AND language_code != %s AND element_type = %s
-							',$my_default_lang,$ilc,'post_lp_course');
 							$trid_array = $lp_db->query_support_wpml_profile('all_course_other_language','','ids');
 							$other_lang_ids = implode( ',', $trid_array );
 
