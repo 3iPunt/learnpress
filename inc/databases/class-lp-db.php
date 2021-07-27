@@ -524,6 +524,15 @@ class LP_Database {
 		return $result;
 	}
 
+	/**
+	 * @param  null  $key
+	 * @param  array  $input
+	 * @param  null  $output
+	 * query for wpml table
+	 * @author hungkv
+	 * @since 4.1.2
+	 * @return array|string|void
+	 */
 	public function query_support_wpml_profile( $key = null, $input = array(), $output = null ) {
 		if ( ! function_exists( 'icl_object_id' ) ) {
 			return;
