@@ -29,6 +29,9 @@ class LP_REST_Orders_Controller extends LP_Abstract_REST_Controller {
 		$order_statuses    = learn_press_get_order_statuses( true, true );
 		$specific_statuses = array( 'lp-completed', 'lp-failed' );
 
+		$lp_order_db = LP_Order_DB::getInstance();
+		$total_price = $lp_order_db->learn_press_get_total_price_order_complete();
+
 		foreach ( $order_statuses as $status ) {
 			if ( ! in_array( $status, $specific_statuses ) ) {
 				$specific_statuses[] = $status;
@@ -36,7 +39,7 @@ class LP_REST_Orders_Controller extends LP_Abstract_REST_Controller {
 		}
 
 		try {
-			$response->data   = learn_press_get_template_content( 'admin/views/dashboard/html-orders', compact( 'specific_statuses' ), '' , LP_PLUGIN_PATH . 'inc/' );
+			$response->data   = learn_press_get_template_content( 'admin/views/dashboard/html-orders', compact( 'specific_statuses' ,'total_price'), '' , LP_PLUGIN_PATH . 'inc/' );
 			$response->status = 'success';
 
 		} catch ( Exception $e ) {

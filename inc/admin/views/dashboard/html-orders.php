@@ -9,13 +9,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( empty( $specific_statuses ) ) {
-	return;
-}
 ?>
 
 <li class="count-number total-raised">
-	<strong><?php echo learn_press_get_total_price_order_complete(); ?></strong>
+	<strong><?php echo $total_price; ?></strong>
 	<p><?php esc_html_e( 'Total Raised', 'learnpress' ); ?></p>
 </li>
 
@@ -52,3 +49,4 @@ foreach ( $specific_statuses as $status ) :
 		</div>
 	</li>
 <?php endforeach; ?>
+
