@@ -516,6 +516,7 @@ function learn_press_count_orders( $args = array() ) {
 		FROM {$wpdb->posts} o
 		WHERE post_status IN(" . join( ',', $format ) . ')
 		AND post_type = %s
+		AND post_parent = 0
 		GROUP BY o.post_status
 	',
 		$statuses
