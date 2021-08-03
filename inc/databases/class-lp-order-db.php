@@ -27,11 +27,12 @@ class LP_Order_DB extends LP_Database {
 	 * get total price order complete not included child-order
 	 *
 	 */
-	public function learn_press_get_total_price_order_complete(){
+	public function learn_press_get_total_price_order_dashboard(){
 
 		$query = $this->wpdb->prepare("SELECT SUM(meta_value) as order_total From `{$this->tb_postmeta}` as mt
 		INNER JOIN `{$this->tb_posts}` as p ON p.id = mt.post_id
-		WHERE p.post_type = %s
+		WHERE p.post_status NOT IN ('auto-draft','trash')
+		AND p.post_type = %s
 		AND p.post_parent = 0
 		AND mt.meta_key = %s
 		", LP_ORDER_CPT , '_order_total');

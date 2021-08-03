@@ -30,7 +30,7 @@ class LP_REST_Orders_Controller extends LP_Abstract_REST_Controller {
 		$specific_statuses = array( 'lp-completed', 'lp-failed' );
 
 		$lp_order_db = LP_Order_DB::getInstance();
-		$total_price = $lp_order_db->learn_press_get_total_price_order_complete();
+		$total_price = $lp_order_db->learn_press_get_total_price_order_dashboard();
 
 		foreach ( $order_statuses as $status ) {
 			if ( ! in_array( $status, $specific_statuses ) ) {
