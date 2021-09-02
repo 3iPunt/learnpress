@@ -35,6 +35,7 @@ const initCourseSidebar = function initCourseSidebar() {
 	}
 
 	const $window = $( window );
+	const $body = $( 'body' );
 	const $scrollable = $sidebar.children();
 	const offset = $sidebar.offset();
 	let scrollTop = 0;
@@ -64,7 +65,9 @@ const initCourseSidebar = function initCourseSidebar() {
 		}
 	};
 
-	$window.on( 'scroll.fixed-course-sidebar', onScroll ).trigger( 'scroll.fixed-course-sidebar' );
+	if( ! $body.hasClass( 'wp-is-mobile' ) ) {
+		$window.on( 'scroll.fixed-course-sidebar', onScroll ).trigger( 'scroll.fixed-course-sidebar' );
+	}
 };
 
 // Rest API Enroll course - Nhamdv.
